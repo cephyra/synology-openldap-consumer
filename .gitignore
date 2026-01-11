@@ -1,0 +1,10 @@
+**/.history/
+
+# 数据目录
+data/
+# 证书目录
+certs/
+
+
+# 测试文件
+**/docker-compose-test.yml

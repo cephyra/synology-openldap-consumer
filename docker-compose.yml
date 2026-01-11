@@ -1,0 +1,46 @@
+services:
+  ldap-01:
+    image: ghcr.io/cephyra/synology-openldap-consumer:latest
+    container_name: ldap-01
+    hostname: ldap-01
+    restart: unless-stopped
+    environment:
+      # Syncrepl 服务器 ID（rid），必填，节点内唯一。
+      LDAP_SERVER_ID: 1
+      # Base DN
+      LDAP_BASE_DN: "dc=example,dc=com"
+      # 本地管理员账户（消费者的 rootdn）
+      LDAP_LOCAL_ADMIN_USERNAME: "admin"
+      LDAP_LOCAL_ADMIN_PASSWORD: "change-me"
+      # Provider 配置
+      ## 主机:端口（根据 security 推断协议：ssl -> ldaps://，否则 ldap://）
+      LDAP_PROVIDER_URI: "ldap.example.com:636"
+      ## 绑定 DN / 密码
+      LDAP_PROVIDER_BIND_DN: "uid=sync,cn=users,dc=example,dc=com"
+      LDAP_PROVIDER_BIND_PW: "change-me"
+      ## 搜索 Base
+      LDAP_PROVIDER_SEARCHBASE: "dc=example,dc=com"
+      ## 加密方式：ssl | starttls | none
+      LDAP_PROVIDER_SECURITY: "ssl"
+      ## 证书校验：demand | never（生产使用 demand）
+      LDAP_PROVIDER_TLS_REQCERT: "demand"
+      # 尝试自动获取 provider schema（true/false）
+      AUTO_FETCH_SCHEMA: "true"
+      # slapd 日志/调试级别（默认 stats，如 stats/sync/none）
+      SLAPD_LOG_LEVEL: "stats"
+      ## 可选：启用消费者 LDAPS（映射 636 并挂载证书）
+      # CERT_CA: "/certs/ca.cer"   # Provider + 本地 LDAPS 的信任根（默认系统 CA）
+      # CERT_CRT: "/certs/ldap.crt"
+      # CERT_KEY: "/certs/ldap.key"
+    ports:
+      - "389:389"
+      - "636:636"
+    volumes:
+      # 持久化数据库（必需）
+      - ./data:/var/lib/ldap
+      # 可选：本地 LDAPS 证书挂载
+      # - ./certs/ca.cer:/certs/ca.cer:ro
+      # - ./certs/ldap.crt:/certs/ldap.crt:ro
+      # - ./certs/ldap.key:/certs/ldap.key:ro
+      # 可选：覆盖内置自定义 schema
+      # - ./schema/custom:/schema/custom
